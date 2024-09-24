@@ -5,9 +5,7 @@ const path = require('path');
 require('dotenv').config()
 
 const mongoose = require('mongoose');
-mongoose.connect(`mongodb+srv://${process.env.MONGODB}:${process.env.MONGOPWD}@critique.drokdtc.mongodb.net/grimoire?retryWrites=true&w=majority&appName=Critique`,
-    { useNewUrlParser: true,
-      useUnifiedTopology: true })
+mongoose.connect(`mongodb+srv://${process.env.MONGODB}:${process.env.MONGOPWD}@critique.drokdtc.mongodb.net/grimoire?retryWrites=true&w=majority&appName=Critique`)
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
