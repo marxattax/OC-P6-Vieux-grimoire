@@ -1,53 +1,45 @@
-const { map } = require('../app');
-const avgrating = require('../middlewares/avgrating');
 const Livre = require('../models/livre')
+const mongoose = require('mongoose');
 
 exports.rateBook = (req, res, next) => {
-    Livre.findOneAndUpdate(
-      {_id: req.params.id}, 
-      {$push: { 
-        ratings: 
-        {grade: req.body.rating,
-        userId: req.body.userId}
-      }}
-    )
-    .then(Livre.aggregate([
-      {$project: {_id: "$_id", note: {$avg : "$ratings.grade" }}},
-    ])
+    const newRating = {
+      userId: req.body.userId, 
+      grade : req.body.rating
+    }
 
-      .then(avgrating => {
-        for(let i=0;i<avgrating.length;i++) {
-          if(avgrating[i]._id == req.params.id) {
-            Livre.findOneAndUpdate(
-              {_id: req.params.id},
-              {$set: { averageRating: Math.trunc(avgrating[i].note)}}
-            )
-            .then(res => console.log(res))
-          }
+    Livre.findOneAndUpdate(
+      {_id:req.params.id},
+      [
+        {$set: 
+          { ratings: { $concatArrays : ["$ratings", [ newRating ]] }}
+        },
+        {$set: 
+          { averageRating: {$round: [{$avg : "$ratings.grade"}, 1]}}
         }
-      })
+      ],
+      {new: true, upsert: true, returnNewDocument: true}
     )
-    .then(book => res.status(201).json(book))
-    .catch(error => res.status(400).json({ error }));
+      .then(book => res.status(201).json(book))
+      .catch(error => res.status(400).json({ error }));
 }
 
 exports.getBooks = (req, res, next) => {
     Livre.find()
-    .then(things => res.status(200).json(things))
+    .then(books => res.status(200).json(books))
     .catch(error => res.status(400).json({ error }));
 }
 
 exports.getOneBook = (req, res, next) => {
-    Livre.findOne({ _id: req.params.id })
-    .then(things => res.status(200).json(things))
-    .catch(error => res.status(400).json({ error }));
+  Livre.findOne({_id: req.params.id})
+  .then(book => res.status(200).json(book))
+  .catch(error => res.status(400).json({ error }));
 }
 
 exports.createBook = (req, res, next) => {
     const bodyLivre = JSON.parse(req.body.book);
     const livre = new Livre({
       ...bodyLivre,
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.filename}`
     });
     livre.save()
       .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
@@ -59,7 +51,7 @@ exports.modifyBook = (req, res, next) => {
     const livre = new Livre({
       _id: req.params.id,
       ...req.body.book,
-      imageUrl : `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+      imageUrl : `${req.protocol}://${req.get('host')}/images/${req.filename}`
     });
     Livre.updateOne({_id: req.params.id}, livre)
     .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
@@ -80,4 +72,10 @@ exports.bestRating = (req, res, next) => {
     Livre.find().sort({averageRating: -1}).limit(3)
     .then(things => res.status(200).json(things))
     .catch(error => res.status(400).json({ error }));
+}
+
+exports.deleteBook = (req, res, next) => {
+  Livre.deleteOne({_id: req.params.id})
+  .then(() => res.status(201).json({ message: 'Objet supprimé !'}))
+  .catch(error => res.status(400).json({ error }));
 }

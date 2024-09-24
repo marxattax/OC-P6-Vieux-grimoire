@@ -2,9 +2,10 @@ const express = require('express');
 const app = express()
 app.use(express.json())
 const path = require('path');
+require('dotenv').config()
 
 const mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://cuisyvincent:rWG7cnDaqZuHUPev@critique.drokdtc.mongodb.net/grimoire?retryWrites=true&w=majority&appName=Critique',
+mongoose.connect(`mongodb+srv://${process.env.MONGODB}:${process.env.MONGOPWD}@critique.drokdtc.mongodb.net/grimoire?retryWrites=true&w=majority&appName=Critique`,
     { useNewUrlParser: true,
       useUnifiedTopology: true })
     .then(() => console.log('Connexion à MongoDB réussie !'))
