@@ -37,7 +37,9 @@ exports.getOneBook = (req, res, next) => {
 
 exports.createBook = (req, res, next) => {
     const bodyLivre = JSON.parse(req.body.book);
+    delete bodyLivre.userId
     const livre = new Livre({
+      userId: req.auth.userId,
       ...bodyLivre,
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.filename}`
     });
@@ -47,26 +49,21 @@ exports.createBook = (req, res, next) => {
 }
 
 exports.modifyBook = (req, res, next) => {
-  if(req.file) {
+    delete req.body.userId
     const livre = new Livre({
       _id: req.params.id,
-      ...req.body.book,
-      imageUrl : `${req.protocol}://${req.get('host')}/images/${req.filename}`
+      userId: req.auth.userId,
+      ...req.body,
     });
+
+    if(req.file) {
+      livre.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.filename}`
+    };
+    
     Livre.updateOne({_id: req.params.id}, livre)
     .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
     .catch(error => res.status(400).json({ error }));
   }
-  else {
-    const livre = new Livre({
-        _id: req.params.id,
-        ...req.body,
-      });
-      Livre.updateOne({_id: req.params.id}, livre)
-      .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
-      .catch(error => res.status(400).json({ error }));
-  }
-}
 
 exports.bestRating = (req, res, next) => {
     Livre.find().sort({averageRating: -1}).limit(3)
