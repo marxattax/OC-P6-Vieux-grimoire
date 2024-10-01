@@ -17,9 +17,9 @@ app.use((req, res, next) => {
   });
 
 const userRoutes = require('./routes/user');
-const livreRoutes = require('./routes/livre');
+const bookRoutes = require('./routes/book');
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/auth', userRoutes);
-app.use('/api/books', livreRoutes);
+app.use('/api/books', bookRoutes);
 
 module.exports = app;

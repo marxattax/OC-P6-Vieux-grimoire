@@ -1,4 +1,4 @@
-const Livre = require('../models/livre')
+const Book = require('../models/book')
 const mongoose = require('mongoose');
 
 exports.rateBook = (req, res, next) => {
@@ -7,7 +7,7 @@ exports.rateBook = (req, res, next) => {
       grade : req.body.rating
     }
 
-    Livre.findOneAndUpdate(
+    Book.findOneAndUpdate(
       {_id:req.params.id},
       [
         {$set: 
@@ -24,55 +24,55 @@ exports.rateBook = (req, res, next) => {
 }
 
 exports.getBooks = (req, res, next) => {
-    Livre.find()
+    Book.find()
     .then(books => res.status(200).json(books))
     .catch(error => res.status(400).json({ error }));
 }
 
 exports.getOneBook = (req, res, next) => {
-  Livre.findOne({_id: req.params.id})
+  Book.findOne({_id: req.params.id})
   .then(book => res.status(200).json(book))
   .catch(error => res.status(400).json({ error }));
 }
 
 exports.createBook = (req, res, next) => {
-    const bodyLivre = JSON.parse(req.body.book);
-    delete bodyLivre.userId
-    const livre = new Livre({
+    const bodyBook = JSON.parse(req.body.book);
+    delete bodyBook.userId
+    const book = new Book({
       userId: req.auth.userId,
-      ...bodyLivre,
+      ...bodyBook,
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.filename}`
     });
-    livre.save()
+    book.save()
       .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
       .catch(error => res.status(400).json({ error }));
 }
 
 exports.modifyBook = (req, res, next) => {
     delete req.body.userId
-    const livre = new Livre({
+    const book = new Book({
       _id: req.params.id,
       userId: req.auth.userId,
       ...req.body,
     });
 
     if(req.file) {
-      livre.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.filename}`
+      book.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.filename}`
     };
     
-    Livre.updateOne({_id: req.params.id}, livre)
+    Book.updateOne({_id: req.params.id}, book)
     .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
     .catch(error => res.status(400).json({ error }));
   }
 
 exports.bestRating = (req, res, next) => {
-    Livre.find().sort({averageRating: -1}).limit(3)
+    Book.find().sort({averageRating: -1}).limit(3)
     .then(things => res.status(200).json(things))
     .catch(error => res.status(400).json({ error }));
 }
 
 exports.deleteBook = (req, res, next) => {
-  Livre.deleteOne({_id: req.params.id})
+  Book.deleteOne({_id: req.params.id})
   .then(() => res.status(201).json({ message: 'Objet supprimé !'}))
   .catch(error => res.status(400).json({ error }));
 }

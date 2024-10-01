@@ -1,6 +1,6 @@
 const sharp = require('sharp');
 const fs = require('fs')
-const Livre = require('../models/livre')
+const Book = require('../models/book')
 
 const MIME_TYPES = {
     'image/jpg': 'jpg',
@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
   if(req.file) {
     /* Si id envoyé dans la requête (donc update et pas création), suppression de l'ancienne image */
     if(req.params.id) {
-      Livre.findOne({_id: req.params.id})
+      Book.findOne({_id: req.params.id})
       .then(book => {
           const oldImage = book.imageUrl.split(`${req.protocol}://${req.get('host')}/`)[1]
           fs.unlink(oldImage, (err => {
